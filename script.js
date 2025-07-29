@@ -1,11 +1,11 @@
 async function dynamicCards() {
 
-    let apiFetch = await fetch("https://dummyjson.com/products")
+    let apiFetch = await fetch('https://dummyjson.com/products?sortBy=title&order=asc')
     let apiData = await apiFetch.json()
     let { products } = apiData
     let cardsBox = document.getElementById("dynamic-cards");
     console.log(apiData)
-    products.map((product) =>{
+    products.map((product) => {
 
         let { title, description, availabilityStatus, category, warrantyInformation, price, rating, thumbnail, brand } = product
         cardsBox.innerHTML += ` <div class="product-card">
@@ -86,37 +86,253 @@ async function dynamicCards() {
 }
 dynamicCards()
 
-// forms
-const loginBtn = document.getElementById("loginBtn");
-const popup = document.getElementById("popup");
-const closeBtn = document.getElementById("closeBtn");
+// login form
+const loginTab = document.getElementById("loginTab");
+const registerTab = document.getElementById("registerTab");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const loginPage = document.getElementById("login-section");
+const toastMessage1 = document.getElementById("toast-msg-1")
+const toastMessage2 = document.getElementById("toast-msg-2")
 
-const signInBtn = document.getElementById("showSignIn");
-const signUpBtn = document.getElementById("showSignUp");
-const signInForm = document.getElementById("signInForm");
-const signUpForm = document.getElementById("signUpForm");
+function loginFormActive() {
+    loginTab.classList.add("active");
+    registerTab.classList.remove("active");
+    loginForm.classList.add("active");
+    registerForm.classList.remove("active");
+}
 
-// Open Popup
-loginBtn.addEventListener("click", () => {
-  popup.style.display = "flex";
+function registerFormActive() {
+    registerTab.classList.add("active");
+    loginTab.classList.remove("active");
+    registerForm.classList.add("active");
+    loginForm.classList.remove("active");
+}
+
+function closeForm() {
+    loginPage.classList.add("hidden")
+}
+
+function openForm() {
+
+    loginPage.classList.remove("hidden")
+}
+
+// register from working
+let users = JSON.parse(localStorage.getItem("users")) || []
+
+class userData {
+
+    fullName
+    email
+    password
+    constructor(fullName, email, password) {
+        this.fullName = fullName,
+            this.email = email,
+            this.password = password
+    }
+}
+const registerBtn = document.getElementById("register-btn")
+const loginBtn = document.getElementById("login-btn")
+
+function register(event) {
+
+    let fullName = document.getElementById("full-name")
+    let email = document.getElementById("email")
+    let password = document.getElementById("password")
+
+    toast.classList.add("active");
+    progress.classList.add("active");
+
+    timer1 = setTimeout(() => {
+        toast.classList.remove("active");
+    }, 5000);
+
+    timer2 = setTimeout(() => {
+        progress.classList.remove("active");
+    }, 5400);
+
+    let savedUser = users.find((element) => element.email === email.value);
+
+    if (savedUser?.email) {
+        alert("Email already exists")
+
+        cross.style.display = "block"
+        setTimeout(() => {
+            cross.style.display = "none"
+
+        }, 5000);
+        toastMessage1.textContent = "Registration Failed"
+        toastMessage2.textContent = "This email already exists"
+        progress.style.setProperty('--progress-bg', '#ff2667')
+    }
+    else {
+
+        let newUser = new userData(fullName.value, email.value, password.value)
+        users.push(newUser)
+        localStorage.setItem("users", JSON.stringify(users));
+
+        alert("User registered successfully!");
+        check.style.display = "block"
+        setTimeout(() => {
+            check.style.display = "none"
+
+        }, 5200);
+        toastMessage1.textContent = "Registration Successful"
+        toastMessage2.textContent = `${fullName.value} registered successfully`
+        progress.style.setProperty('--progress-bg', '#d39000ff')
+
+        fullName.value = "";
+        email.value = "";
+        password.value = "";
+
+        loginFormActive();
+
+    }
+}
+
+
+function login(event) {
+
+    event.preventDefault();
+
+    let email = document.getElementById('login-email');
+    let password = document.getElementById('login-password');
+
+    toast.classList.add("active");
+    progress.classList.add("active");
+
+    timer1 = setTimeout(() => {
+        toast.classList.remove("active");
+    }, 5000);
+
+    timer2 = setTimeout(() => {
+        progress.classList.remove("active");
+    }, 5400);
+
+    let savedUser = users.find((element) => element.email === email.value);
+
+    if (savedUser?.email === email.value && savedUser?.password === password.value) {
+
+        let currentUserFullName = savedUser?.fullName
+
+        localStorage.setItem('currentUser', JSON.stringify(savedUser));
+
+        alert("Login successful!");
+
+        toastMessage1.textContent = "login successfull!";
+        toastMessage2.textContent = `Welcome ${currentUserFullName}`;
+        progress.style.setProperty('--progress-bg', '#d39000ff')
+        check.style.display = "block"
+
+        setTimeout(() => {
+            check.style.display = "none"
+        }, 2000);
+
+        setTimeout(() => {
+            closeForm()
+        }, 1500);
+        
+        
+        const logoutBtn = document.getElementById("log-out")
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem('currentUser');
+            const loginformOpenBtn = document.getElementById("loginform-open-btn")
+            loginformOpenBtn.classList.add("hidden")
+            const dropdownBox = document.getElementById("dropdown-box")
+            console.log(dropdownBox)
+            dropdownBox.style.display = 'none'
+
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        });
+
+        const loginBtn = document.getElementById("loginform-open-btn");
+        const dropdownBox = document.getElementById("dropdown-box");
+
+        if (loginBtn) loginBtn.style.display = "none";
+        if (dropdownBox) dropdownBox.style.display = "block"
+
+        UpdateCurrentUser();
+    }
+    else {
+        alert("Invalid credentials, please try again.");
+        cross.style.display = "block"
+        setTimeout(() => {
+            cross.style.display = "none"
+
+        }, 5000);
+        toastMessage1.textContent = "Login Failed"
+        toastMessage2.textContent = "Invalid credentials, please try again."
+        progress.style.setProperty('--progress-bg', '#ff2667')
+    }
+
+}
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
+    const dropdownBox = document.getElementById("dropdown-box");
+    if (currentUser) {
+        // User is logged in
+        if (loginBtn) loginBtn.style.display = "none";
+        if (dropdownBox) dropdownBox.style.display = "block";
+        UpdateCurrentUser();
+    } else {
+        // No user logged in
+        if (loginBtn) loginBtn.style.display = "block";
+        if (dropdownBox) dropdownBox.style.display = "none";
+    }
+
+function UpdateCurrentUser() {
+    const dropdownUserName = document.getElementById("dropdown-username")
+    const dropdownEmail = document.getElementById("dropdown-user-email")
+    const dropdownPassword = document.getElementById("dropdown-user-password")
+    let currentDropdownUser = JSON.parse(localStorage.getItem("currentUser"))
+
+    dropdownUserName.textContent = currentDropdownUser.fullName
+    dropdownEmail.textContent = "➤ Email:" + " " + currentDropdownUser.email
+    dropdownPassword.textContent = "➤ Password:" + " " + currentDropdownUser.password
+}
+
+const toast = document.querySelector(".toast"),
+    check = document.getElementById("check"),
+    cross = document.getElementById("delete"),
+    closeIcon = document.getElementById("close-icon"),
+    progress = document.querySelector(".progress");
+
+let timer1, timer2;
+
+
+closeIcon.addEventListener("click", () => {
+    toast.classList.remove("active");
+
+    setTimeout(() => {
+        progress.classList.remove("active");
+    }, 300);
+
+    clearTimeout(timer1);
+    clearTimeout(timer2);
 });
 
-// Close Popup
-closeBtn.addEventListener("click", () => {
-  popup.style.display = "none";
+
+const dropdown = document.querySelector(".dropdown");
+const dropdownArrow = document.getElementById("drop-arrow")
+const dropdownMenu = () => {
+    dropdown.classList.toggle("is-active");
+    dropdownArrow.classList.toggle("dropdown-sign-active")
+};
+
+dropdown.addEventListener("click", () => {
+    dropdownMenu();
 });
 
-// Switch Tabs
-signInBtn.addEventListener("click", () => {
-  signInForm.classList.add("active");
-  signUpForm.classList.remove("active");
-  signInBtn.classList.add("active");
-  signUpBtn.classList.remove("active");
-});
-
-signUpBtn.addEventListener("click", () => {
-  signUpForm.classList.add("active");
-  signInForm.classList.remove("active");
-  signUpBtn.classList.add("active");
-  signInBtn.classList.remove("active");
+// Hide when clicked outside the dropdown
+window.addEventListener("click", (e) => {
+    if (!e.target.closest(".dropdown")) {
+        if (dropdown.classList.contains("is-active")) {
+            dropdownMenu();
+        }
+    }
 });
